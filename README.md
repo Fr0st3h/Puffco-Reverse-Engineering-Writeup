@@ -15,6 +15,7 @@ Now on to the documentation/writeup!
 # My Findings
 ### Checklist of things I've accomplished.
 - [x] Change lantern Colour.
+- [x] Send commands (preheat, boost, cycle profile)
 - [x] Change profiles (1-4) Colour, temperature, time.
 - [x] Set profile colour to any sort of animation.
 - [x] Set base, logo, main, glass LED brightness.
@@ -68,19 +69,50 @@ There's 4 segments to the brightness, each one goes to 255 and controls a separa
 ### Set Custom Profile Values
 There's only one set of offsets to control every profile value (temperature, time, colour, preheat colour, name)
 To change the selected profile, you need to set 0-3 to the heatCyclePointer characteristic (offset 61). This will change which profile is active in the app, not current selected profile on the peak.
-Following are examples
 
-    heatCycleName (Offset 62)
-    	- The profile name can be set as ASCII.
-    heatCycleTemp (Offset 64)
-    	- 0x00, 0x80, 0x8F, 0x43 (Little Endian Float, value is 287 (Celsius))
-    heatCycleTime (Offset 64)
-    	- 0x00, 0x00, 0xb8, 0x42 (Little Endian Float, value is 92 (Seconds))
-    heatCycleColor (Offset 65)
-    	- 0x16, 0xE9, 0x9C, 0x00, 0x00, 0x00, 0x00, 0x00 (Greenish Colour)
-    heatCycleActiveColor (Offset 6B)
-    	- 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00 (This is being set to last colour I think)
+    Changing heatCyclePointer
+    	0x00, 0x00, 0x00, 0x00 = Profile 1
+    	0x01, 0x00, 0x00, 0x00 = Profile 2
+    	0x02, 0x00, 0x00, 0x00 = Profile 3
+    	0x03, 0x00, 0x00, 0x00 = Profile 4
+    	
+    Following are examples
+        heatCycleName (Offset 62)
+        	- The profile name can be set as ASCII.
+        heatCycleTemp (Offset 64)
+        	- 0x00, 0x80, 0x8F, 0x43 (Little Endian Float, value is 287 (Celsius))
+        heatCycleTime (Offset 64)
+        	- 0x00, 0x00, 0xb8, 0x42 (Little Endian Float, value is 92 (Seconds))
+        heatCycleColor (Offset 65)
+        	- 0x16, 0xE9, 0x9C, 0x00, 0x00, 0x00, 0x00, 0x00 (Greenish Colour)
+        heatCycleActiveColor (Offset 6B)
+        	- 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00 (This is being set to last colour I think)
+
 it seems heatCyclePreheatColor doesn't work, ActiveColor seems to override it or something.
+
+### Charging State Values
+    0 - Charging (0x00, 0x00, 0x00, 0x00)
+    2 - Done Charging (0x00, 0x00, 0x00, 0x40)
+    3 - Over Temp? (0x00, 0x00, 0x40, 0x40)
+    4 - Disconnected (0x00, 0x00, 0x80, 0x40)
+
+### Sending commands to the device
+Command List:
+
+0 - master off - 0x00, 0x00, 0x00, 0x00
+1 - sleep - 0x00, 0x00, 0x80, 0x3F
+2 -idle - 0x00, 0x00, 0x00, 0x040
+3 - tempSelectBegin - 0x00, 0x00, 0x40, 0x40
+4 - tempSelectStop - 0x00, 0x00, 128 0x40
+5 - showBatterylevel - 0x00, 0x00, 0xA0, 0x40
+6 - showVersion - 0x00, 0x00, 0xC0, 0x40
+7 - heatCycleStart - 0x00, 0x00, 0xE0, 0x40
+8 - heatCycleAbort - 0x00, 0x00, 0x00, 0x41
+9 - heatCycleBoost - 0x00, 0x00, 0x10, 0x41
+10 - factoryTest - 0x00, 0x00, 0x20, 0x41
+11 - bonding - 0x00, 0x00, 0x30, 0x41
+
+
 
 
 
