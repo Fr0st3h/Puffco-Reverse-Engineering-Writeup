@@ -54,16 +54,16 @@ The order in which the bytes are will change depending on if rainbow is enabled 
 	    0x06 - Rising
 	    0x07 - Circling
 	    0x15 - Circling Slow
-### Enabling the Lantern
+### Enabling the Lantern & stealth
 This one was easy, its 4 bytes long and the first byte is either a 0 or a 1.
 
-    00, 00, 00, 00 = Turns the lantern off
-    01, 00, 00, 00 = Turns the lantern on
+    Turns off = 0x00, 0x00, 0x00, 0x00
+    Turns on = 0x01, 0x00, 0x00, 0x00
 
 ### Setting LED Brightness
 There's 4 segments to the brightness, each one goes to 255 and controls a separate LED. 
 
-    FF, FF, FF, FF
+    0xFF, 0xFF, 0xFF, 0xFF
     RING LED, UNDER GLASS LED, MAIN LED, BATTERY LED
 
 ### Set Custom Profile Values
@@ -88,7 +88,7 @@ To change the selected profile, you need to set 0-3 to the heatCyclePointer char
         heatCycleActiveColor (Offset 6B)
         	- 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00 (This is being set to last colour I think)
 
-it seems heatCyclePreheatColor doesn't work, ActiveColor seems to override it or something.
+It seems heatCyclePreheatColor doesn't work, ActiveColor seems to override it or something.
 
 ### Charging State Values
     0 - Charging (0x00, 0x00, 0x00, 0x00)
@@ -99,29 +99,26 @@ it seems heatCyclePreheatColor doesn't work, ActiveColor seems to override it or
 ### Sending commands to the device
 Command List:
 
-    0 - master off - 0x00, 0x00, 0x00, 0x00
-    1 - sleep - 0x00, 0x00, 0x80, 0x3F
-    2 -idle - 0x00, 0x00, 0x00, 0x040
-    3 - tempSelectBegin - 0x00, 0x00, 0x40, 0x40
-    4 - tempSelectStop - 0x00, 0x00, 128 0x40
-    5 - showBatterylevel - 0x00, 0x00, 0xA0, 0x40
-    6 - showVersion - 0x00, 0x00, 0xC0, 0x40
-    7 - heatCycleStart - 0x00, 0x00, 0xE0, 0x40
-    8 - heatCycleAbort - 0x00, 0x00, 0x00, 0x41
-    9 - heatCycleBoost - 0x00, 0x00, 0x10, 0x41
-    10 - factoryTest - 0x00, 0x00, 0x20, 0x41
-    11 - bonding - 0x00, 0x00, 0x30, 0x41
+    0 - master off (0x00, 0x00, 0x00, 0x00)
+    1 - sleep (0x00, 0x00, 0x80, 0x3F)
+    2 -idle (0x00, 0x00, 0x00, 0x040)
+    3 - tempSelectBegin (0x00, 0x00, 0x40, 0x40)
+    4 - tempSelectStop (0x00, 0x00, 128 0x40)
+    5 - showBatterylevel (0x00, 0x00, 0xA0, 0x40)
+    6 - showVersion (0x00, 0x00, 0xC0, 0x40)
+    7 - heatCycleStart (0x00, 0x00, 0xE0, 0x40)
+    8 - heatCycleAbort (0x00, 0x00, 0x00, 0x41)
+    9 - heatCycleBoost (0x00, 0x00, 0x10, 0x41)
+    10 - factoryTest (0x00, 0x00, 0x20, 0x41)
+    11 - bonding (0x00, 0x00, 0x30, 0x41)
+    
+### Setting the actual selected profile
+This will change the selected profile on the device (Like clicking the button on the back to cycle through the profiles) UUID Offset is 41
 
-
-
-
-
-	    
-	
-	
-
-
-
+    Profile 1 - (0x00, 0x00, 0x00, 0x00)
+    Profile 2 - (0x00, 0x00, 0x80, 0x3F)
+    Profile 3 - (0x00, 0x00, 0x00, 0x40)
+    Profile 3 - (0x00, 0x00, 0x40, 0x40)
 
 ### Every Single Bluetooth characteristic name & offset
 The base characteristic UUID is f9a98c15-c651-4f34-b656-d100bf5800
