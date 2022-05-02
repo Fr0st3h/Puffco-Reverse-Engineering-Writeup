@@ -12,6 +12,55 @@ A writeup on how I reversed engineered the puffco peak pro
 Puffco, I love your products, and I mean no harm in releasing this information. I only did this as a side project so I can control the peak pro however I want. I decided to publish my findings so that anyone else who is looking to do the same has a place to start. Long story short, __please don't sue me, or DMCA this repo__. If you wish for me to take it down, __please email me or leave a issue on this repo stating that you would like it to be removed, and I will happily do so__.
 
 Now on to the documentation/writeup!
+
+# UPDATE!
+Their new Firmware X update added a "Firmware Authentication", basically restricting you from reading/writing almost all characteristics. The way the app allows read/write is by taking an accessSeedKey from the puffco (which is different every time you connect) and doing a few things to it, down below you can find the steps on how their Authentication works for Firmware X.
+1. Read accessSeedKey from puffco E0 characteristic (as mention before, this is different everytime you connect)
+2. Create an empty 32 bit Uint8Array
+3. Add the hardcoded DEVICE_HANDSHAKE key to the first 16 bits of the empty Uint8Array
+4. Add the accessSeedKey to the last 16 bits of the Uint8Array
+5. Hash the Uint8Array with sha256 and convert the hex string to a num array
+6. Slice the 32 bit key (only keeping the first 16 bits)
+7. Write the new accessSeedKey to the E0 characteristic (The puffco is waiting for this new accessSeedKey, if its right you get read/write)
+
+Below is the Authenticate function I deobfuscated from their webapp (includes some required functions as well):
+```javascript
+const {createHash} = require('crypto');
+
+function convertFromHex(hex) {//Thanks stackoverflow!
+    var hex = hex.toString();
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2)
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    return str;
+}
+
+function convertHexStringToNumArray(h) {//From puffco's source
+    var i, j = (i = h.match(/.{2}/g)) != null ? i : [];
+    return j == null ? void 0x0 : j.map(function(k) {
+        return parseInt(k, 0x10);
+    });
+}
+
+var initialAccessSeedKey, DEVICE_HANDSHAKE_DECODED, newAccessSeedArray, newKeyIndex, newAccessSeedKeyHashed, finalAccessSeedKey;
+
+initialAccessSeedKey = [42, 45, 124, 169, 105, 200, 18, 27, 188, 123, 188, 171, 2, 237, 37, 19]; //an AccessSeedKey I used while testing. You can get this from 'E0' characteristic. This is never the same and changes upon connecting.
+
+DEVICE_HANDSHAKE_DECODED = convertFromHex(Buffer.from('FUrZc0WilhUBteT2JlCc+A==', 'base64').toString('hex'));//This DEVICE_HANDSHAKE is found by running the DEVICE_HANDSHAKE function found in their webapp
+
+newAccessSeedArray = new Uint8Array(0x20); //Create 32bit Uint8Array
+
+for (newKeyIndex = 0x0; newKeyIndex < 0x10; ++newKeyIndex) { //Loop, creating new 32bit key
+    newAccessSeedArray[newKeyIndex] = DEVICE_HANDSHAKE_DECODED.charCodeAt(newKeyIndex);//adding DEVICE_HANDSHAKE to first 16 bits
+    newAccessSeedArray[newKeyIndex + 0x10] = initialAccessSeedKey[newKeyIndex];//adding accessSeedKey to last 16 bits
+}
+
+newAccessSeedKeyHashed = convertHexStringToNumArray(createHash('sha256').update(newAccessSeedArray).digest('hex')); //hash to sha256 and convert the new AccessSeedKey to a num array
+finalAccessSeedKey = newAccessSeedKeyHashed.slice(0x0, 0x10); //Slice and only use first 16 bits
+
+console.log(finalAccessSeedKey); //Print new accessSeedKey
+```
+
 # My Findings
 ### Checklist of things I've accomplished.
 - [x] Change lantern Colour.
@@ -28,6 +77,7 @@ Now on to the documentation/writeup!
 - [x] Knowing what every Bluetooth characteristic does.
 - [x] Found hidden features (New device, upcoming features).
 - [x] Their staging URL, which actually contained stuff never released.
+- [x] Their NEW Firmware X Authentication
 
 ### How I started reverse engineering the peak pro.
 I started reverse engineering with no plan in mind, I just wanted to poke around the Bluetooth characteristics and see what I could accomplish. I started off by using a GATT app on my phone, changing the values in the Puffco app and then seeing what changes in the GATT app. In the end I ended up extracting the main react native file from the android app and found out what every characteristic does. I will describe the characteristics I mainly looked into. At the end of this writeup will be the base UUID as well as the offsets.
@@ -198,5 +248,6 @@ The base characteristic UUID is f9a98c15-c651-4f34-b656-d100bf5800
     faultLogEntry: 'd2',
     faultLogBegin: 'd3',
     faultLogEnd: 'd4'
+    accessSeedKey: 'e0'
 
 	
