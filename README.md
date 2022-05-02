@@ -249,5 +249,15 @@ The base characteristic UUID is f9a98c15-c651-4f34-b656-d100bf5800
     faultLogBegin: 'd3',
     faultLogEnd: 'd4'
     accessSeedKey: 'e0'
+    pCoeff: 'e1'
+    iCoeff: 'e2'
+    dCoeff: 'e3'
+    dFilterTime: 'e4'
+    safetyThermalHeatCap: 'e5'
+    safetyThermalDecayTau: 'e6'
+    minWattSteadyStateFraction: 'e7'
+    nvmAccessPointer: '100'
+    nvmAccessData: '101'
+    
 
 	
