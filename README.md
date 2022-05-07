@@ -259,5 +259,31 @@ The base characteristic UUID is f9a98c15-c651-4f34-b656-d100bf5800
     nvmAccessPointer: '100'
     nvmAccessData: '101'
     
+# Some Firmware Information
+
+Before we begin, puffco uses Gecko Bootloader by Silicon Labs (Not sure what board, I'm not focusing on hardware). Their firmware files have the extension .gbl
+
+### Bluetooth Characteristics for Apploader
+
+    Device Name: '00002A00-0000-1000-8000-00805F9B34FB'
+    OTA Control Attribute: 'F7BF3564-FB6D-4E53-88A4-5E37E0326063'
+    OTA Data Attribute: '984227F3-34FC-4045-A5D0-2C581F81A153'
+    AppLoader Version: '4F4A2368-8CCA-451E-BFFF-CF0E2EE23E9F'
+    OTA Version: '4CC07BCF-0868-4B32-9DAD-BA4CC41E5316'
+    Gecko Bootloader Version: '25F05C0A-E917-46E9-B2A5-AA2BE1245AFE'
+    Application Version: '0D77CC11-4AC1-49F2-BFA9-CD96AC7A92F8'
+
+The Puffco has 3 layers to it, the bootloader (Ignoring), the apploader (We will focus on this), and the application (We will focus on this also). The application itself is what handles everything from lighting effects to heating up your chamber. It is what the apploader loads, if there is no firmware (which is happens often when installing a new firmware), your puffco becomes unresponsive. At this time the puffco is actually stuck booting into apploader and WILL show a bluetooth device, device name is always the original mac address of when your puffco was in working state but the ':' are removed (Ex: B891901D38D4). Upon connecting, you don't need to provide any authentication you are free to read/write characteristics. An easy way I've found to check which firmware is installed is by reading the 'Application Version' Characteristic. If you see '00 00 00 00' then there is no firmware installed and you must install one. Below you can see what I've done to send a firmware file via bluetooth. 
+
+1. Write '0x00' to OTA Control Attribute
+2. Start sending firmware 100 bytes at a time to OTA Data Attribute
+3. When finished, write '0x03' to OTA Control Attribute
+
+Just after writing '0x03' to the OTA Control, it will parse the firmware and if the data was send correctly, your puffco should boot after several seconds. 
+**Note: If you want to boot the apploader (OTA DFU) then you can write '0x01' to the OTA Control Attribute. You will find this characteristic in the Application also**
+
+I've also wrote a firmware tool that lets you go from Firmware W to Firmware X and back freely, as many times as you'd like, it also detects puffcos with no firmware installed and will automatically install Firmware W for you. You can find an exe and the source over at https://github.com/Fr0st3h/Puffco-Firmware-Tool
+
+
 
 	
